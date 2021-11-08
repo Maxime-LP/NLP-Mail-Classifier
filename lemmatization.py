@@ -21,20 +21,20 @@ sys.path.append(r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark\bin"
 sc = sparknlp.start()
 
 def lemmatization(input_text):
-
+    input_text = pd.DataFrame({'input_text':input_text})
     documentAssembler = DocumentAssembler().setInputCol('input_text').setOutputCol('document')
     tokenizer = Tokenizer().setInputCols(["document"]).setOutputCol("tokenized")
     normalizer = Normalizer().setInputCols(["tokenized"]).setOutputCol('normalized')
-    lemmatizer = LemmatizerModel.pretrained(name="lemma", lang="fr").setInputCols(["normalized"]).setOutputCol("lemmatized")
-    stop_words = StopWordsCleaner.pretrained("stopwords_fr", "fr").setInputCols(["lemmatized"]).setOutputCol("cleanTokens")
-    finisher = Finisher().setInputCols(['cleanTokens'])
+    #lemmatizer = LemmatizerModel.pretrained(name="lemma", lang="fr").setInputCols(["normalized"]).setOutputCol("lemmatized")
+    #stop_words = StopWordsCleaner.pretrained("stopwords_fr", "fr").setInputCols(["lemmatized"]).setOutputCol("cleanTokens")
+    finisher = Finisher().setInputCols(['normalized'])
     
     pipeline = Pipeline().setStages([
         documentAssembler,
         tokenizer,
         normalizer,
-        lemmatizer,
-        stop_words,
+        #lemmatizer,
+        #stop_words,
         finisher
         ])
 
