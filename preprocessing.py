@@ -9,12 +9,12 @@ from collections import Counter
 import pandas as pd
 import os, sys, atexit
 
-os.environ['HADOOP_HOME'] = r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark"
+os.environ['HADOOP_HOME'] = r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\hadoop"
 os.environ['SPARK_HOME'] = r'C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark'
 os.environ['JAVA_HOME'] = r'C:\Progra~1\OpenJDK\jdk-11.0.8.10-hotspot'
 os.environ['PYSPARK_SUBMIT_ARGS'] = r'C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark-shell'
 sys.path.append(r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark\bin")
-#conda activate sparknlp
+
 #sc = sparknlp.start()
 """
 spark = SparkSession.builder \
@@ -62,8 +62,6 @@ def dfReformat(df):
             text = rawtext.split(' ')
             tokens = {key:[val] for key,val in dict(Counter(text)).items()}
             #tokens = lemmatization(rawtext)
-            print(rawtext)
-            print(tokens)
             tmp_df = pd.DataFrame.from_dict(tokens,dtype=int)
             tmp_df['tmp'] = 1
             output_df = output_df.merge(tmp_df,how='outer',on=['tmp'])
