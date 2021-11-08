@@ -4,9 +4,6 @@ import sparknlp
 from sparknlp.base import *
 from sparknlp.annotator import *
 from pyspark.ml import Pipeline
-from pyspark import SparkContext
-from pyspark.conf import SparkConf
-from pyspark.context import SparkContext
 from collections import Counter
 import pandas as pd
 import os, sys, atexit
@@ -72,7 +69,7 @@ def ImportData(path,file):
     
     print("Lecture des données ...")
     data = pd.read_csv(file,sep='¤',quotechar='§',encoding='UTF-16', engine='python',header=0,skipinitialspace=True,dtype=str)
-    print(data.shape())
+
     print("Traitement des données ...")
     #output_data = dfReformat(data)
     #print(data)
@@ -83,3 +80,6 @@ ImportData(path,'firstdataset.csv')
 
 
 #atexit.register(lambda:sc.stop())
+
+
+lemmatization('Bonjour à tous, à tous, je suis @libaba')
