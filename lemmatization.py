@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from getMailsFromOutlook import write_csv
+from preprocessing import write_csv
 import sparknlp
 from sparknlp.base import *
 from sparknlp.annotator import *
@@ -11,6 +11,7 @@ from collections import Counter
 import pandas as pd
 import os, sys, atexit
 
+r"""
 os.environ['HADOOP_HOME'] = r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\hadoop"
 #os.environ['SPARK_HOME'] = r'C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark'
 os.environ['SPARK_HOME'] =  r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\hadoop"
@@ -18,8 +19,9 @@ os.environ['JAVA_HOME'] = r'C:\Progra~1\OpenJDK\jdk-11.0.8.10-hotspot'
 os.environ['PYSPARK_SUBMIT_ARGS'] = r'C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark-shell'
 os.environ['PYSPARK_DRIVER_PYTHON'] = 'ipython'
 sys.path.append(r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark\bin")
+"""
 
-#sc = sparknlp.start()
+sc = sparknlp.start()
 
 def lemmatization(input_text):
 
@@ -73,7 +75,7 @@ def ImportData(path,file):
     print(data.shape())
     print("Traitement des données ...")
     #output_data = dfReformat(data)
-    print(data)
+    #print(data)
     #return output_data
 
 path = r'\\HM.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail'
