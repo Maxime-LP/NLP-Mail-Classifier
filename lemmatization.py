@@ -4,6 +4,7 @@ import sparknlp
 from sparknlp.base import *
 from sparknlp.annotator import *
 from pyspark.ml import Pipeline
+from pyspark.sql import SQLContext
 from collections import Counter
 import pandas as pd
 import os, sys, atexit
@@ -21,13 +22,14 @@ sys.path.append(r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark\bin"
 sc = sparknlp.start()
 
 def lemmatization(input_text):
-    input_text = pd.DataFrame({'input_text':input_text})
+    input_text = pd.DataFrame({'input_text':[input_text]})
+    input_text = sc.createDataFrame(input_text)
     documentAssembler = DocumentAssembler().setInputCol('input_text').setOutputCol('document')
     tokenizer = Tokenizer().setInputCols(["document"]).setOutputCol("tokenized")
     normalizer = Normalizer().setInputCols(["tokenized"]).setOutputCol('normalized')
-    #lemmatizer = LemmatizerModel.pretrained(name="lemma", lang="fr").setInputCols(["normalized"]).setOutputCol("lemmatized")
+    lemmatizer = LemmatizerModel.pretrained(name="lemma", lang="fr").setInputCols(["normalized"]).setOutputCol("lemmatized")
     #stop_words = StopWordsCleaner.pretrained("stopwords_fr", "fr").setInputCols(["lemmatized"]).setOutputCol("cleanTokens")
-    finisher = Finisher().setInputCols(['normalized'])
+    finisher = Finisher().setInputCols(['lemmatized'])
     
     pipeline = Pipeline().setStages([
         documentAssembler,
@@ -39,7 +41,7 @@ def lemmatization(input_text):
         ])
 
     result = pipeline.fit(input_text).transform(input_text)
-    res = result.selectExpr("lemma.result").show(truncate=False)
+    res = result.selectExpr("finished_lemmatized").show(truncate=False)
     print(res)
     return res
     
