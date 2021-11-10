@@ -95,4 +95,4 @@ def WriteFinalDataset(path,inputFile,outputFile):
 
 if __name__=='__main__':
     path = r'\\HM.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail'
-    WriteFinalDataset(path,'firstdataset2.csv','finaldataset2.csv')
+    WriteFinalDataset(path,'firstdataset.csv','finaldataset.csv')
