@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-from preprocessing import write_csv
 import sparknlp
 from sparknlp.base import *
 from sparknlp.annotator import *
 from pyspark.ml import Pipeline
-from pyspark.sql import SQLContext
-from collections import Counter
+from collections import Counter, defaultdict
 import pandas as pd
-import os, sys, atexit
+import os, sys, atexit, csv, spacy
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
 
+############################################################################
 r"""
 os.environ['HADOOP_HOME'] = r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\hadoop"
 #os.environ['SPARK_HOME'] = r'C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark'
@@ -19,11 +20,11 @@ os.environ['PYSPARK_DRIVER_PYTHON'] = 'ipython'
 sys.path.append(r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark\bin")
 """
 
-sc = sparknlp.start()
+#sc = sparknlp.start()
 
-def lemmatization(input_text):
+def SparkNLP(input_text):
     input_text = pd.DataFrame({'input_text':[input_text]})
-    input_text = sc.createDataFrame(input_text)
+    #input_text = sc.createDataFrame(input_text)
     documentAssembler = DocumentAssembler().setInputCol('input_text').setOutputCol('document')
     tokenizer = Tokenizer().setInputCols(["document"]).setOutputCol("tokenized")
     normalizer = Normalizer().setInputCols(["tokenized"]).setOutputCol('normalized')
@@ -42,46 +43,64 @@ def lemmatization(input_text):
 
     result = pipeline.fit(input_text).transform(input_text)
     res = result.selectExpr("finished_lemmatized").show(truncate=False)
-    print(res)
     return res
+
+def Spacy(inputText,spacyModule='fr_dep_news_trf'):
     
-def dfReformat(df):
-    output_df = pd.DataFrame({'demande_de_support':df['demande_de_support'],'attached_files':df['attached_files']},dtype=int)
-    output_df['tmp'] = 1
+    try:
+        nlp = spacy.load(spacyModule)
+    except OSError:
+        print('Module introuvable. Téléchargement en cours ...')
+        os.system(f'python -m spacy download {spacyModule} >nul 2>&1')
+        nlp = spacy.load(spacyModule)
 
-    rawtext_df = pd.DataFrame(dtype=str)
-    rawtext_df['text'] = df.object.str.cat(df.body,sep=' ').replace('.',' ').replace(',',' ').replace('  ',' ')
+    doc = nlp(inputText)
+    return dict(Counter([token.lemma_ for token in doc]))
 
-    for rawtext in rawtext_df.text:
-        if type(rawtext)==str:
-            text = rawtext.split(' ')
-            tokens = {key:[val] for key,val in dict(Counter(text)).items()}
-            #tokens = lemmatization(rawtext)
-            tmp_df = pd.DataFrame.from_dict(tokens,dtype=int)
-            tmp_df['tmp'] = 1
-            output_df = output_df.merge(tmp_df,how='outer',on=['tmp'])
+def nGrams(inputList):
+    Vect = CountVectorizer(analyzer='char_wb',encoding='utf-16',strip_accents='unicode',ngram_range=(2,10))
+    X = Vect.fit_transform(inputList)
+    return None
 
-    return output_df.drop('tmp',axis=1).fillna(0)
+def wordsCount(inputText):
+    return dict(Counter(inputText))
 
-def ImportData(path,file):
-    os.system('cls')
-    if not os.path.isfile(os.path.join(os.getcwd(),file)):
-        print("Ecriture des données ...")
-        write_csv(path)
+############################################################################
+
+def progressbar(step,totalSteps, size=60):
+    x = int(size*step/totalSteps)
+    sys.stdout.flush()
+    sys.stdout.write("[%s%s] %i/%i\r" % ("#"*x, "."*(size-x), step, totalSteps))
+
+def lemmatizeDF(df,method=wordsCount):
+    tokens = defaultdict(list)
+    totalSteps = len(df.text)
+    progressbar(0,totalSteps)
+
+    for step,rawText in enumerate(df.text):
+        if type(rawText)==str:
+            text = rawText.split(' ')
+
+            for word,count in method(text).items():
+                tokens[word] += [0]*(step-len(tokens[word])) + [count]   #on a toujours step>len(tokens[word])
+            
+            progressbar(step+1,totalSteps)
+            sys.stdout.flush()
+
+    for word in tokens.keys():
+        tokens[word] += [0]*(step+1-len(tokens[word]))
     
-    print("Lecture des données ...")
-    data = pd.read_csv(file,sep='¤',quotechar='§',encoding='UTF-16', engine='python',header=0,skipinitialspace=True,dtype=str)
+    sys.stdout.write('\n')
+    output_df = pd.DataFrame.from_dict(tokens,dtype=int)
+    output_df['demande_de_support'] = df['demande_de_support']
+    output_df['attached_files'] = df['attached_files']
 
-    print("Traitement des données ...")
-    #output_data = dfReformat(data)
-    #print(data)
-    #return output_data
-
-path = r'\\HM.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail'
-ImportData(path,'firstdataset.csv')
-
+    return output_df
 
 #atexit.register(lambda:sc.stop())
 
+if __name__=='__main__':
+    #lemmatization('Bonjour à tous, à tous, je suis @libaba')
+    Spacy('Bonjour à tous, à tous, je suis @libaba')
 
-lemmatization('Bonjour à tous, à tous, je suis @libaba')
+    
