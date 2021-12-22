@@ -27,7 +27,7 @@ def ReadMail(message,directory):
     elif message.Subject.lower()[:3] == 're:' or message.Subject.lower()[:4] == 're :':
         mail['demande_de_support'] = '0'
     else:
-        mail['demande_de_support'] = 'unkown'
+        mail['demande_de_support'] = 'unknown'
     
     mail['sender'] = str(message.SenderName.lower())
     mail['date'] = str(message.LastModificationTime)
@@ -54,8 +54,10 @@ def Parser(path):
     df = pd.DataFrame(data=None,columns=['demande_de_support','sender','date','attached_files','text'])
     mails_dropped = []
 
+    print('PATH : ',path)
     for root,dirs,files in os.walk(path):
         for file in files:
+
             try:
                 directory = root.split('\\')[-1]
                 message = outlook.OpenSharedItem(os.path.join(root,file))
@@ -77,6 +79,7 @@ def writeFirstDataset(path,output):
     df = Parser(path)
     with open(output,'w',encoding='utf-16') as csvfile:
         df.to_csv(csvfile,sep='¤',quotechar='§')
+
 
 def WriteFinalDataset(path,inputFile,outputFile):
     os.system('cls')

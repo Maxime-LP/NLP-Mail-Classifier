@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-import sparknlp
-from sparknlp.base import *
-from sparknlp.annotator import *
-from pyspark.ml import Pipeline
 from collections import Counter, defaultdict
 import pandas as pd
 import os, sys, atexit, csv, spacy
@@ -10,41 +6,6 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 
 ############################################################################
-r"""
-os.environ['HADOOP_HOME'] = r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\hadoop"
-#os.environ['SPARK_HOME'] = r'C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark'
-os.environ['SPARK_HOME'] =  r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\hadoop"
-os.environ['JAVA_HOME'] = r'C:\Progra~1\OpenJDK\jdk-11.0.8.10-hotspot'
-os.environ['PYSPARK_SUBMIT_ARGS'] = r'C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark-shell'
-os.environ['PYSPARK_DRIVER_PYTHON'] = 'ipython'
-sys.path.append(r"C:\Users\le_paumier-m\Anaconda3\Lib\site-packages\pyspark\bin")
-"""
-
-#sc = sparknlp.start()
-
-def SparkNLP(input_text):
-    input_text = pd.DataFrame({'input_text':[input_text]})
-    #input_text = sc.createDataFrame(input_text)
-    documentAssembler = DocumentAssembler().setInputCol('input_text').setOutputCol('document')
-    tokenizer = Tokenizer().setInputCols(["document"]).setOutputCol("tokenized")
-    normalizer = Normalizer().setInputCols(["tokenized"]).setOutputCol('normalized')
-    lemmatizer = LemmatizerModel.pretrained(name="lemma", lang="fr").setInputCols(["normalized"]).setOutputCol("lemmatized")
-    #stop_words = StopWordsCleaner.pretrained("stopwords_fr", "fr").setInputCols(["lemmatized"]).setOutputCol("cleanTokens")
-    finisher = Finisher().setInputCols(['lemmatized'])
-    
-    pipeline = Pipeline().setStages([
-        documentAssembler,
-        tokenizer,
-        normalizer,
-        #lemmatizer,
-        #stop_words,
-        finisher
-        ])
-
-    result = pipeline.fit(input_text).transform(input_text)
-    res = result.selectExpr("finished_lemmatized").show(truncate=False)
-    return res
-
 def Spacy(inputText,spacyModule='fr_dep_news_trf'):
     
     try:
@@ -95,12 +56,4 @@ def lemmatizeDF(df,method=wordsCount):
     output_df['demande_de_support'] = df['demande_de_support']
     output_df['attached_files'] = df['attached_files']
 
-    return output_df
-
-#atexit.register(lambda:sc.stop())
-
-if __name__=='__main__':
-    #lemmatization('Bonjour à tous, à tous, je suis @libaba')
-    Spacy('Bonjour à tous, à tous, je suis @libaba')
-
-    
+    return output_df   
