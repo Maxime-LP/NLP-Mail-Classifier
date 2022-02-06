@@ -1,31 +1,36 @@
 # -*- coding: utf-8 -*-
 from collections import Counter, defaultdict
 import pandas as pd
-import os, sys, atexit, csv, spacy
-import numpy as np
+import os, sys, spacy, re
 from sklearn.feature_extraction.text import CountVectorizer
 
+
+
 ############################################################################
-def Spacy(inputText,spacyModule='fr_dep_news_trf'):
-    
+def initSpacy(spacyModule):
     try:
-        nlp = spacy.load(spacyModule)
+        lemmatizer = spacy.load(spacyModule, disable = ['parser', 'attribute_ruler', 'ner'])
     except OSError:
         print('Module introuvable. Téléchargement en cours ...')
         os.system(f'python -m spacy download {spacyModule} >nul 2>&1')
-        nlp = spacy.load(spacyModule)
+        lemmatizer = spacy.load(spacyModule)
+    return lemmatizer
 
-    doc = nlp(inputText)
-    return dict(Counter([token.lemma_ for token in doc]))
+def lemmatizer(inputText, spacynlp):    
+    doc = spacynlp(inputText)
+    words_lemmas_list = [token.lemma_.lower() for token in doc if not token.is_stop and re.match('^[a-z]+$', token.lemma_.lower()) is not None]
+    outputDict = dict(Counter(words_lemmas_list))
+    
+    newText = ' '.join(words_lemmas_list)
+    ngrams_counter = nGrams(newText, nrange = (2,2))
+    outputDict.update(ngrams_counter)
+    return outputDict
 
-def nGrams(inputList):
-    Vect = CountVectorizer(analyzer='char_wb',encoding='utf-16',strip_accents='unicode',ngram_range=(2,10))
-    X = Vect.fit_transform(inputList)
-    return None
-
-def wordsCount(inputText):
-    return dict(Counter(inputText))
-
+def nGrams(inputText, nrange = (2,2)):
+    inputList = list(inputText)
+    Vect = CountVectorizer(analyzer='char_wb',encoding='utf-16',strip_accents='unicode',ngram_range=nrange)
+    X = Vect.fit(inputList)
+    return {key:1 for key in Vect.get_feature_names()}
 ############################################################################
 
 def progressbar(step,totalSteps, size=60):
@@ -33,18 +38,16 @@ def progressbar(step,totalSteps, size=60):
     sys.stdout.flush()
     sys.stdout.write("[%s%s] %i/%i\r" % ("#"*x, "."*(size-x), step, totalSteps))
 
-def lemmatizeDF(df,method=wordsCount):
+def lemmatizeDF(df):
     tokens = defaultdict(list)
     totalSteps = len(df.text)
+    spacynlp = initSpacy('fr_core_news_md')
     progressbar(0,totalSteps)
 
     for step,rawText in enumerate(df.text):
         if type(rawText)==str:
-            text = rawText.split(' ')
-
-            for word,count in method(text).items():
-                tokens[word] += [0]*(step-len(tokens[word])) + [count]   #on a toujours step>len(tokens[word])
-            
+            for word,count in lemmatizer(rawText, spacynlp).items():
+                tokens[word] += [0]*(step-len(tokens[word])) + [count]
             progressbar(step+1,totalSteps)
             sys.stdout.flush()
 

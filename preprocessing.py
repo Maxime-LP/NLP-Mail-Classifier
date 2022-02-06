@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-           
-import os, re, csv
-from pickle import encode_long
+import os, re
 import win32com.client        
 from collections import defaultdict
 import pandas as pd
-from lemmatization import lemmatizeDF
+from lemmatization import lemmatizeDF, initSpacy
 from sklearn.feature_extraction.text import HashingVectorizer
 tokenizer = HashingVectorizer(strip_accents='unicode').build_tokenizer()
 
@@ -81,7 +80,7 @@ def writeFirstDataset(path,output):
         df.to_csv(csvfile,sep='¤',quotechar='§')
 
 
-def WriteFinalDataset(path,inputFile,outputFile):
+def WriteFinalDataset(inputFile,outputFile,path=os.getcwd()):
     os.system('cls')
     if not os.path.isfile(os.path.join(os.getcwd(),inputFile)):
         print("Ecriture des données ...")
@@ -95,7 +94,3 @@ def WriteFinalDataset(path,inputFile,outputFile):
 
     print(f"Ecriture de {outputFile} ...")
     output_data.to_csv(outputFile,encoding='UTF-16')
-
-if __name__=='__main__':
-    path = r'\\HM.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail'
-    WriteFinalDataset(path,'firstdataset.csv','finaldataset.csv')
