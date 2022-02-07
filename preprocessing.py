@@ -22,8 +22,8 @@ def ForwardedBodyRemover(message):
 
 def isThisASupportMail(message, directory, sender):
     if directory == 'Assistance + réponses':
-        if message.subject.lower()[:3] != 're:' and message.subject.lower()[:4] != 're :' \
-        and sender not in ['chable brice','plonquet nadège','courtais yohan','le paumier maxime']:
+        if message.subject.lower()[:3] != 're:' and message.subject.lower()[:4] != 're :' and \
+        message.subject.lower()[:5] != '[toc]' and sender not in ['chable brice','plonquet nadège','courtais yohan','le paumier maxime']:
             return 1
         else:
             return 0
@@ -31,7 +31,7 @@ def isThisASupportMail(message, directory, sender):
         return 0
     elif sender in ['chable brice','plonquet nadège','courtais yohan','le paumier maxime']:
         return 0
-    elif message.subject.lower()[:3] == 're:' or message.subject.lower()[:4] == 're :':
+    elif message.subject.lower()[:3] == 're:' or message.subject.lower()[:4] == 're :' or message.subject.lower()[:5] == '[toc]':
         return 0
     else:
         return 'unknown'
@@ -107,5 +107,5 @@ def WriteFinalDataset(inputFile,outputFile,path=os.getcwd()):
 
 
 if __name__ == '__main__':
-    path = r"\\hm.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail"
+    path = r"\\hm.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail2"
     WriteFinalDataset('firstdataset.csv', 'finaldataset.csv', path)
