@@ -52,6 +52,5 @@ def lemmatizeDF(df):
     print('\n\n')
     output_df = pd.DataFrame.from_dict(tokens,dtype=int)
     output_df['demande_de_support'] = df['demande_de_support']
-    output_df['attached_files'] = df['attached_files']
 
     return output_df   

@@ -95,13 +95,13 @@ def WriteFinalDataset(inputFile,outputFile,path=os.getcwd()):
         writeFirstDataset(path,inputFile)
     
     print(f"Lecture de {inputFile} ...")
-    #data = pd.read_csv(inputFile,sep='¤',quotechar='§',encoding='UTF-16', engine='python',header=0,skipinitialspace=True,dtype=str)
+    data = pd.read_csv(inputFile,sep='¤',quotechar='§',encoding='UTF-16', engine='python',header=0,skipinitialspace=True,dtype=str)
 
     print("Traitement des données ...")
-    #output_data = lemmatizeDF(data)
+    output_data = lemmatizeDF(data)
 
     print(f"Ecriture de {outputFile} ...")
-    #output_data.to_csv(outputFile,encoding='UTF-16')
+    output_data.to_csv(outputFile,encoding='UTF-16')
 
 
 if __name__ == '__main__':
