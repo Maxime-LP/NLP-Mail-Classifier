@@ -1,0 +1,8 @@
+collections
+pandas
+os
+re
+spacy
+scikit-learn
+sys
+extract_msg
