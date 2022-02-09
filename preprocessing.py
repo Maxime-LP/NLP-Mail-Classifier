@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-           
-import os, re      
+import os, re  
 from collections import defaultdict
 import pandas as pd
-from lemmatization import lemmatizeDF, initSpacy
+from lemmatization import lemmatizeDF
+from utilities import progressbar
 import extract_msg
-from sklearn.feature_extraction.text import HashingVectorizer
-tokenizer = HashingVectorizer(strip_accents='unicode').build_tokenizer()
 
-def ForwardedBodyRemover(message):
+def TruncBody(message):
     messageBodyList = message.body.splitlines(keepends=False)
     i = 0
     while True :
@@ -21,24 +20,16 @@ def ForwardedBodyRemover(message):
     return ' '.join(messageBodyList)
 
 def isThisASupportMail(message, directory, sender):
-    if directory == 'Assistance + réponses':
-        if message.subject.lower()[:3] != 're:' and message.subject.lower()[:4] != 're :' and \
-        message.subject.lower()[:5] != '[toc]' and sender not in ['chable brice','plonquet nadège','courtais yohan','le paumier maxime']:
-            return 1
-        else:
-            return 0
-    elif directory == 'Non assistance':
+    if directory == 'Non assistance' or message.subject.lower()[:3] == 're:' or message.subject.lower()[:4] == 're :' or \
+    message.subject.lower()[:5] == '[toc]' or sender in ['chable brice', 'favreliere david', 'plonquet nadège', 'courtais yohan', 'le paumier maxime']:
         return 0
-    elif sender in ['chable brice','plonquet nadège','courtais yohan','le paumier maxime']:
-        return 0
-    elif message.subject.lower()[:3] == 're:' or message.subject.lower()[:4] == 're :' or message.subject.lower()[:5] == '[toc]':
-        return 0
+    elif directory == 'Assistance + réponses':
+        return 1
     else:
-        return 'unknown'
+        return 2
 
 def ReadMail(message,directory):
     mail = defaultdict(str)
-
     sender = re.search('<(.+)@',str(message.sender.lower()))
     if sender is None:
         mail['sender'] = message.sender.lower()
@@ -48,31 +39,36 @@ def ReadMail(message,directory):
 
     mail['demande_de_support'] = isThisASupportMail(message, directory, mail['sender'])
 
-    mail['text'] = message.subject.lower() + ' ' + ForwardedBodyRemover(message).lower()
-    #Removes html
-    mail['text'] = re.sub("<(mailto|https?).+>","",mail['text'])
-    #Removes phone numbers
-    mail['text'] = re.sub("([0-9]{2}\s?){5}","",mail['text'])
-    mail['text'] = re.sub("[0-9]{2}(%20[0-9]{2}){4}","",mail['text'])
-    #Removes link markers
-    mail['text'] = re.sub("https?|www","",mail['text'])
-    #Finds the words of 2 letters or more and strips accents
-    words = tokenizer(mail['text'])
-    mail['text'] = ' '.join(words)
+    mail['text'] = message.subject.lower() + ' ' + TruncBody(message).lower()
+
+    #Removes boxes
+    mail['text'] = re.sub("\[.*?\]", "", mail['text']) #non-greedy matches
+    mail['text'] = re.sub("<.*?>", "", mail['text'])
+
+    #Removes link markers and punctuation
+    mail['text'] = re.sub("https?://|www", "", mail['text'])
+    mail['text'] = re.sub("[\\\.…\_,;!?@:/=\"«»><\(\)\[\]#}{~°+\|£$¤€*§%]", " ", mail['text'])
+
+    #Removes isolated numbers
+    mail['text'] = re.sub(r"\b[0-9]+\b", "", mail['text'])
+
+    #Replaces any stack of whitespaces with a single one
+    mail['text'] = re.sub("\s+", " ", mail['text'])
+
     return mail
 
 def Parser(path):
     #path > Assistance / Non assistance
     df = pd.DataFrame(data=None,columns=['demande_de_support','sender','text'])
     mails_dropped = []
-
     print('PATH : ',path)
-    for root,dirs,files in os.walk(path):  
+    totalSteps, step = 3300, 0
+    progressbar(step,totalSteps)
+    for root,dirs,files in os.walk(path):
         for file in files:
             try:
                 directory = root.split('\\')[-1]
                 message = extract_msg.Message(os.path.join(root,file))
-                print(message.subject)
                 currentMail = ReadMail(message,directory)
                 df = df.append(currentMail,ignore_index=True)
             except KeyboardInterrupt:
@@ -80,8 +76,10 @@ def Parser(path):
             except Exception as e:
                 print(e," : mail ignoré")
                 mails_dropped.append(file)
+            step += 1
+            progressbar(step,totalSteps)
 
-    print(len(mails_dropped), 'mails ignorés :', mails_dropped)
+    print('\n\n', len(mails_dropped), 'mails ignorés :', mails_dropped)
     return df
 
 def writeFirstDataset(path,output):
@@ -107,5 +105,5 @@ def WriteFinalDataset(inputFile,outputFile,path=os.getcwd()):
 
 
 if __name__ == '__main__':
-    path = r"\\hm.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail2"
+    path = r"\\hm.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail"
     WriteFinalDataset('firstdataset.csv', 'finaldataset.csv', path)

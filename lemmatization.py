@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from collections import Counter, defaultdict
 import pandas as pd
-import os, sys, spacy, re
+import os, spacy, re
 from sklearn.feature_extraction.text import CountVectorizer
-
-
+from sklearn.feature_extraction.text import HashingVectorizer
+from utilities import progressbar
+tokenizer = HashingVectorizer(ngram_range = (1,2)).build_tokenizer()
 
 ############################################################################
 def initSpacy(spacyModule):
@@ -33,11 +34,6 @@ def nGrams(inputText, nrange = (2,2)):
     return {key:1 for key in Vect.get_feature_names()}
 ############################################################################
 
-def progressbar(step,totalSteps, size=60):
-    x = int(size*step/totalSteps)
-    sys.stdout.flush()
-    sys.stdout.write("[%s%s] %i/%i\r" % ("#"*x, "."*(size-x), step, totalSteps))
-
 def lemmatizeDF(df):
     tokens = defaultdict(list)
     totalSteps = len(df.text)
@@ -49,12 +45,11 @@ def lemmatizeDF(df):
             for word,count in lemmatizer(rawText, spacynlp).items():
                 tokens[word] += [0]*(step-len(tokens[word])) + [count]
             progressbar(step+1,totalSteps)
-            sys.stdout.flush()
 
     for word in tokens.keys():
         tokens[word] += [0]*(step+1-len(tokens[word]))
     
-    sys.stdout.write('\n')
+    print('\n\n')
     output_df = pd.DataFrame.from_dict(tokens,dtype=int)
     output_df['demande_de_support'] = df['demande_de_support']
     output_df['attached_files'] = df['attached_files']
