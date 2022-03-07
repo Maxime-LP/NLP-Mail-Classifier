@@ -1,5 +1,7 @@
 1 - check email framework : https://docs.python.org/3/library/email.html
-2 - clean preprocessing and lemmatization code : test of extract_msg.openMsg() instead of extract_msg.Message()
-3 - new iteration of mail reading with multiprocessing ?
-4 - reformat for melusine
+2 - clean preprocessing and lemmatization code : test of extract_msg.openMsg() instead of extract_msg.Message() OK
+3 - new iteration of mail reading with multiprocessing  OK
+4 - reformat for melusine OK
 5 - work on bigrams
+6 - https://www.nbshare.io/notebook/595607887/Understanding-Word-Embeddings-Using-Spacy-Python/
+7 - https://www.nbshare.io/notebook/197284676/Word-Embeddings-Transformers-In-SVM-Classifier-Using-Python/
