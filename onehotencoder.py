@@ -25,9 +25,9 @@ def countLemmas(inputText, lemmatizer):
 
     return outputDict
 
-def ooe_df(input_df):
+def ohe_df(input_df):
     tokens = defaultdict(list)
-    df = input_df['label'].copy()
+    df = input_df[['label']].copy()
     df['text'] = input_df[['header', 'body']].astype(str).agg(' '.join, axis=1)
 
     lemmatizer = initSpacy('fr_core_news_md')
