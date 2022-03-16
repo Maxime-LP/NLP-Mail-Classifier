@@ -66,4 +66,4 @@ def extraction(writeto, path=os.getcwd()):
 
 if __name__ == '__main__':
     path = r"\\hm.dm.ad\hmdoc\Direction Technique Assurances\Central\MOA décisionnel\DECIBEL\Suivi\Automatisation\Mail"
-    extraction('data/mails_v2.csv', path)
+    extraction('data/mails.csv', path)
