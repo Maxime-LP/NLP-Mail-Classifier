@@ -5,17 +5,17 @@ import pandas as pd
 import extract_msg
 import multiprocessing as mp
 
-def isThisASupportMail(message, directory, sender):
+def isThisASupportMail(message, directory):
     if directory == 'Non assistance' or message.subject.lower()[:3] == 're:' or message.subject.lower()[:4] == 're :' or \
-    message.subject.lower()[:5] == '[toc]' or sender in ['chable brice', 'favreliere david', 'plonquet nadège', 'courtais yohan', 'le paumier maxime']:
+    message.subject.lower()[:5] == '[toc]' or message.sender.lower() in ['chable brice', 'favreliere david', 'plonquet nadège', 'courtais yohan', 'le paumier maxime']:
         return 0
     elif directory == 'Assistance + réponses':
         return 1
     else:
         return 2
 
-def isThisASupportMail_v2(message, directory, sender):
-    if directory == 'Non assistance' or message.subject.lower()[:5] == '[toc]':
+def isThisASupportMail_v2(message, directory):
+    if directory == 'Non assistance':
         return 0
     elif directory == 'Assistance + réponses':
         return 1
@@ -39,11 +39,21 @@ def ExtractInfo(filepath):
     message = extract_msg.Message(filepath, delayAttachments = True)
     directory = filepath.split('\\')[-2]
     mail = defaultdict(str)
-    mail['header'] = message.subject.lower()
+
+    if message.subject is not None:
+        mail['header'] = message.subject.lower()
+    else:
+        mail['header'] = ''
+
     mail['body'] = TruncBody(message.body.lower())
     mail['date'] = message.date
-    mail['from'] = message.sender.lower()
-    mail['label'] = isThisASupportMail_v2(message, directory, mail['from'])
+
+    if message.sender is not None:
+        mail['from'] = message.sender.lower()
+    else:
+         mail['from'] = ''
+
+    mail['label'] = isThisASupportMail_v2(message, directory)
     return mail
 
 def ReadMail(filepath):
