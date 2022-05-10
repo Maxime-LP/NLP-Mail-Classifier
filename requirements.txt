@@ -7,3 +7,5 @@ scikit-learn
 sys
 extract_msg
 unidecode
+stanza
+melusine
